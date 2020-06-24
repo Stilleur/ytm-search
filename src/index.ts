@@ -30,28 +30,33 @@ export class YoutubeMusic {
     this.apiKey = this.getApiKey()
   }
 
-  async getSongs (playlistId: string): Promise<YoutubeSong[]> {
-    const songs: YoutubeSong[] = []
+  async getMusics (playlistId: string): Promise<Music[]> {
+    const musics: Music[] = []
 
     try {
-      const response = await this.axios.post<NextResponse>(`next?alt=json&key=${await this.apiKey}`, {
+      const response = await this.axios.post<BrowseResponse>(`browse?alt=json&key=${await this.apiKey}`, {
         context: this.context,
-        enablePersistentPlaylistPanel: true,
-        playlistId,
-        isAudioOnly: true
+        browseId: playlistId
       })
 
-      // TODO
+      for (const music of response.data.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].musicPlaylistShelfRenderer.contents) {
+        const title = music.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
+        const artist = music.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
+        const videoId = music.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchEndpoint.videoId
+        const duration = music.musicResponsiveListItemRenderer.fixedColumns[0].musicResponsiveListItemFixedColumnRenderer.text.runs[0].text
+
+        musics.push(new Music(title, artist, videoId, duration))
+      }
     } catch (error) {
       console.log(error)
       throw error
     }
 
-    return songs
+    return musics
   }
 
-  async findPlaylists (searchValue: string): Promise<YoutubePlaylist[]> {
-    const playlists: YoutubePlaylist[] = []
+  async findPlaylists (searchValue: string): Promise<Playlist[]> {
+    const playlists: Playlist[] = []
 
     try {
       const response = await this.axios.post<SearchResponse>(`search?alt=json&key=${await this.apiKey}`, {
@@ -65,7 +70,7 @@ export class YoutubeMusic {
         const playlistId = playlist.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId
         const songs = Number(playlist.musicResponsiveListItemRenderer.flexColumns[3].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text.match(this.songsRegex)[0])
 
-        playlists.push(new YoutubePlaylist(title, playlistId, songs))
+        playlists.push(new Playlist(title, playlistId, songs))
       }
     } catch (error) {
       console.log(error)
@@ -90,9 +95,21 @@ export class YoutubeMusic {
   }
 }
 
-export class YoutubeSong {}
+export class Music {
+  readonly title: string
+  readonly artist: string
+  readonly videoId: string
+  readonly duration: string
 
-export class YoutubePlaylist {
+  constructor (title: string, artist: string, videoId: string, duration: string) {
+    this.title = title
+    this.artist = artist
+    this.videoId = videoId
+    this.duration = duration
+  }
+}
+
+export class Playlist {
   readonly title: string
   readonly playlistId: string
   readonly songs: number
@@ -105,7 +122,31 @@ export class YoutubePlaylist {
 }
 
 // eslint-disable-next-line no-unused-vars
-class NextResponse {}
+class BrowseResponse {
+  contents: {
+    singleColumnBrowseResultsRenderer: {
+      tabs: Tab[]
+    }
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class Tab {
+  tabRenderer: {
+    content: {
+      sectionListRenderer: {
+        contents: MusicPlaylistShelf[]
+      }
+    }
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class MusicPlaylistShelf {
+  musicPlaylistShelfRenderer: {
+    contents: MusicResponsiveListItem[]
+  }
+}
 
 // eslint-disable-next-line no-unused-vars
 class SearchResponse {
@@ -136,6 +177,9 @@ class MusicResponsiveListItem {
             playNavigationEndpoint: {
               watchPlaylistEndpoint: {
                 playlistId: string
+              },
+              watchEndpoint: {
+                videoId: string
               }
             }
           }
@@ -143,6 +187,16 @@ class MusicResponsiveListItem {
       }
     }
     flexColumns: MusicResponsiveListItemFlexColumn[]
+    fixedColumns: MusicResponsiveListItemFixedColumn[]
+  }
+}
+
+// eslint-disable-next-line no-unused-vars
+class MusicResponsiveListItemFixedColumn {
+  musicResponsiveListItemFixedColumnRenderer: {
+    text: {
+      runs: Run[]
+    }
   }
 }
 
