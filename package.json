@@ -2,11 +2,13 @@
   "name": "ytm-search",
   "version": "1.0.0",
   "description": "Youtube Music Search",
-  "main": "./src/index",
-  "type": "module",
+  "types": "index.d.ts",
+  "main": "dist/index.js",
+  "files": ["dist/**/*"],
   "private": true,
   "scripts": {
-    "test": "npx jest"
+    "test": "npx jest",
+    "prepublish": "tsc"
   },
   "author": "Cédric Mourgeon <stilleurfr@gmail.com>",
   "license": "ISC",
