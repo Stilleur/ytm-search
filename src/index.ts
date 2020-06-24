@@ -2,17 +2,17 @@ import { launch } from 'puppeteer'
 import axios from 'axios'
 
 export class YoutubeMusic {
-  readonly hostname = 'music.youtube.com'
-  readonly url = `https://${this.hostname}/`
-  readonly apiUrl = `${this.url}youtubei/v1/`
+  private readonly hostname = 'music.youtube.com'
+  private readonly url = `https://${this.hostname}/`
+  private readonly apiUrl = `${this.url}youtubei/v1/`
 
-  readonly headers = {
+  private readonly headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
     'content-type': 'application/json',
     referer: this.url
   }
 
-  readonly context = {
+  private readonly context = {
     client: {
       clientName: 'WEB_REMIX',
       clientVersion: '0.1',
@@ -21,10 +21,10 @@ export class YoutubeMusic {
     }
   }
 
-  readonly axios = axios.create({ baseURL: this.apiUrl, headers: this.headers })
-  readonly apiKey: Promise<string>
+  private readonly axios = axios.create({ baseURL: this.apiUrl, headers: this.headers })
+  private readonly apiKey: Promise<string>
 
-  readonly songsRegex = new RegExp('^\\d+')
+  private readonly songsRegex = new RegExp('^\\d+')
 
   constructor () {
     this.apiKey = this.getApiKey()
