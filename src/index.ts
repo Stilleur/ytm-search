@@ -36,7 +36,7 @@ export class YoutubeMusic {
     try {
       const response = await this.axios.post<BrowseResponse>(`browse?alt=json&key=${await this.apiKey}`, {
         context: this.context,
-        browseId: playlistId
+        browseId: `VL${playlistId}`
       })
 
       for (const music of response.data.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].musicPlaylistShelfRenderer.contents) {
