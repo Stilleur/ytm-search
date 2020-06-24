@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Youtube Music Search",
   "main": "./src/index",
+  "type": "module",
   "private": true,
   "scripts": {
     "test": "npx jest"
