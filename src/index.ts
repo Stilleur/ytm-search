@@ -5,13 +5,14 @@ export class YoutubeMusic {
   readonly hostname = 'music.youtube.com'
   readonly url = `https://${this.hostname}/`
   readonly apiUrl = `${this.url}youtubei/v1/`
+
   readonly headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
     'content-type': 'application/json',
     referer: this.url
   }
 
-  readonly context: {
+  readonly context = {
     client: {
       clientName: 'WEB_REMIX',
       clientVersion: '0.1',
@@ -33,7 +34,7 @@ export class YoutubeMusic {
     const songs: YoutubeSong[] = []
 
     try {
-      const response = await this.axios.post<SearchResponse>(`next?alt=json&key=${await this.apiKey}`, {
+      const response = await this.axios.post<NextResponse>(`next?alt=json&key=${await this.apiKey}`, {
         context: this.context,
         enablePersistentPlaylistPanel: true,
         playlistId,
@@ -83,7 +84,7 @@ export class YoutubeMusic {
     // eslint-disable-next-line no-undef
     const apiKey = await page.evaluate(() => { return ytcfg && ytcfg.data_ && ytcfg.data_.INNERTUBE_API_KEY as string })
 
-    await browser.close()
+    browser.close()
 
     return apiKey
   }
@@ -102,6 +103,9 @@ export class YoutubePlaylist {
     this.songs = songs
   }
 }
+
+// eslint-disable-next-line no-unused-vars
+class NextResponse {}
 
 // eslint-disable-next-line no-unused-vars
 class SearchResponse {
