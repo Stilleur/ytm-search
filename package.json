@@ -9,7 +9,11 @@
   },
   "author": "Cédric Mourgeon",
   "license": "ISC",
-  "dependencies": {},
+  "dependencies": {
+    "@types/puppeteer": "^3.0.0",
+    "axios": "^0.19.2",
+    "puppeteer": "^4.0.0"
+  },
   "devDependencies": {
     "@types/jest": "^26.0.0",
     "@typescript-eslint/eslint-plugin": "^3.4.0",
