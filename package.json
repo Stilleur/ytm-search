@@ -2,16 +2,32 @@
   "name": "ytm-search",
   "version": "1.0.0",
   "description": "Youtube Music Search",
-  "types": "index.d.ts",
   "main": "dist/index.js",
-  "files": ["dist/**/*"],
-  "private": true,
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "test": "npx jest",
-    "prepublish": "tsc"
+    "build": "tsc",
+    "prepack": "npm run build"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Stilleur/ytm-search.git"
+  },
+  "keywords": [
+    "youtube",
+    "music",
+    "search",
+    "node"
+  ],
   "author": "Cédric Mourgeon <stilleurfr@gmail.com>",
-  "license": "ISC",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/Stilleur/ytm-search/issues"
+  },
+  "homepage": "https://github.com/Stilleur/ytm-search#ytm-search",
   "dependencies": {
     "@types/puppeteer": "^3.0.0",
     "axios": "^0.19.2",
