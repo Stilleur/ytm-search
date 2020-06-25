@@ -10,7 +10,7 @@
   "scripts": {
     "test": "npx jest",
     "build": "tsc",
-    "prepack": "npm run build"
+    "prepack": "npm run test && npm run build"
   },
   "repository": {
     "type": "git",
@@ -29,11 +29,11 @@
   },
   "homepage": "https://github.com/Stilleur/ytm-search#ytm-search",
   "dependencies": {
-    "@types/puppeteer": "^3.0.0",
     "axios": "^0.19.2",
     "puppeteer": "^4.0.0"
   },
   "devDependencies": {
+    "@types/puppeteer": "^3.0.0",
     "@types/jest": "^26.0.0",
     "@typescript-eslint/eslint-plugin": "^3.4.0",
     "@typescript-eslint/parser": "^3.4.0",
