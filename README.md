@@ -7,7 +7,7 @@
   <img src="https://img.shields.io/npm/l/vue.svg?sanitize=true" alt="License">
 </p>
 
-**ytm-search** allows you to search playlists and retrieve associated musics from Youtube Music.
+**ytm-search** allows you to search playlists and retrieve the associated musics from Youtube Music.
 
 ## Getting started
 
