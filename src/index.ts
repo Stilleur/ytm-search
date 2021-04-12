@@ -1,18 +1,18 @@
-import { launch } from 'puppeteer'
 import axios from 'axios'
 
 export class YoutubeMusic {
-  private readonly hostname = 'music.youtube.com'
-  private readonly url = `https://${this.hostname}/`
-  private readonly apiUrl = `${this.url}youtubei/v1/`
+  private static readonly hostname = 'music.youtube.com'
+  private static readonly url = `https://${YoutubeMusic.hostname}/`
+  private static readonly apiUrl = `${YoutubeMusic.url}youtubei/v1/`
+  private static readonly songsRegex = new RegExp('^\\d+')
 
-  private readonly headers = {
+  private static readonly headers = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36',
     'content-type': 'application/json',
-    referer: this.url
+    referer: YoutubeMusic.url
   }
 
-  private readonly context = {
+  private static readonly context = {
     client: {
       clientName: 'WEB_REMIX',
       clientVersion: '0.1',
@@ -21,21 +21,18 @@ export class YoutubeMusic {
     }
   }
 
-  private readonly axios = axios.create({ baseURL: this.apiUrl, headers: this.headers })
-  private readonly apiKey: Promise<string>
+  private readonly axios = axios.create({
+    baseURL: YoutubeMusic.apiUrl,
+    headers: YoutubeMusic.headers,
+    params: { alt: 'json', key: 'AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30' }
+  })
 
-  private readonly songsRegex = new RegExp('^\\d+')
-
-  constructor () {
-    this.apiKey = this.getApiKey()
-  }
-
-  async getMusics (playlistId: string): Promise<Music[]> {
+  public async getMusics (playlistId: string): Promise<Music[]> {
     const musics: Music[] = []
 
     try {
-      const response = await this.axios.post<BrowseResponse>(`browse?alt=json&key=${await this.apiKey}`, {
-        context: this.context,
+      const response = await this.axios.post<BrowseResponse>('browse', {
+        context: YoutubeMusic.context,
         browseId: `VL${playlistId}`
       })
 
@@ -55,12 +52,12 @@ export class YoutubeMusic {
     return musics
   }
 
-  async findPlaylists (searchValue: string): Promise<Playlist[]> {
+  public async findPlaylists (searchValue: string): Promise<Playlist[]> {
     const playlists: Playlist[] = []
 
     try {
-      const response = await this.axios.post<SearchResponse>(`search?alt=json&key=${await this.apiKey}`, {
-        context: this.context,
+      const response = await this.axios.post<SearchResponse>('search', {
+        context: YoutubeMusic.context,
         query: searchValue
       })
 
@@ -68,9 +65,9 @@ export class YoutubeMusic {
       for (const playlist of playlistShelf.musicShelfRenderer.contents) {
         const title = playlist.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
         const playlistId = playlist.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId
-        const songs = Number(playlist.musicResponsiveListItemRenderer.flexColumns[3].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text.match(this.songsRegex)[0])
+        const songCount = Number(playlist.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[4].text.match(YoutubeMusic.songsRegex)[0])
 
-        playlists.push(new Playlist(title, playlistId, songs))
+        playlists.push(new Playlist(title, playlistId, songCount))
       }
     } catch (error) {
       console.log(error)
@@ -78,20 +75,6 @@ export class YoutubeMusic {
     }
 
     return playlists
-  }
-
-  private async getApiKey (): Promise<string> {
-    const browser = await launch()
-    const page = await browser.newPage()
-    await page.goto(this.url)
-
-    // @ts-ignore
-    // eslint-disable-next-line no-undef
-    const apiKey = await page.evaluate(() => { return ytcfg && ytcfg.data_ && ytcfg.data_.INNERTUBE_API_KEY as string })
-
-    browser.close()
-
-    return apiKey
   }
 }
 
@@ -112,12 +95,12 @@ export class Music {
 export class Playlist {
   readonly title: string
   readonly playlistId: string
-  readonly songs: number
+  readonly songCount: number
 
-  constructor (title: string, playlistId: string, songs: number) {
+  constructor (title: string, playlistId: string, songCount: number) {
     this.title = title
     this.playlistId = playlistId
-    this.songs = songs
+    this.songCount = songCount
   }
 }
 

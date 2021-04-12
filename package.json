@@ -1,6 +1,6 @@
 {
   "name": "ytm-search",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Youtube Music Search",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -29,8 +29,7 @@
   },
   "homepage": "https://github.com/Stilleur/ytm-search#ytm-search",
   "dependencies": {
-    "axios": "^0.21.1",
-    "puppeteer": "^4.0.0"
+    "axios": "^0.21.1"
   },
   "devDependencies": {
     "@types/puppeteer": "^3.0.0",
