@@ -27,51 +27,57 @@ export class YoutubeMusic {
     params: { alt: 'json', key: 'AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30' }
   })
 
+  /**
+   * Get the musics from the given playlist id.
+   * @param playlistId The playlist id.
+   * @returns The musics from the given playlist id.
+   */
   public async getMusics (playlistId: string): Promise<Music[]> {
     const musics: Music[] = []
 
-    try {
-      const response = await this.axios.post<BrowseResponse>('browse', {
-        context: YoutubeMusic.context,
-        browseId: `VL${playlistId}`
-      })
+    const response = await this.axios.post<BrowseResponse>('browse', {
+      context: YoutubeMusic.context,
+      browseId: `VL${playlistId}`
+    })
 
-      for (const music of response.data.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].musicPlaylistShelfRenderer.contents) {
-        const title = music.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
-        const artist = music.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
-        const videoId = music.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchEndpoint.videoId
-        const duration = music.musicResponsiveListItemRenderer.fixedColumns[0].musicResponsiveListItemFixedColumnRenderer.text.runs[0].text
+    for (const music of response.data.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].musicPlaylistShelfRenderer.contents) {
+      const title = music.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
+      const artist = music.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
+      const videoId = music.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchEndpoint.videoId
+      const duration = music.musicResponsiveListItemRenderer.fixedColumns[0].musicResponsiveListItemFixedColumnRenderer.text.runs[0].text
 
-        musics.push(new Music(title, artist, videoId, duration))
-      }
-    } catch (error) {
-      console.log(error)
-      throw error
+      musics.push(new Music(title, artist, videoId, duration))
     }
 
     return musics
   }
 
+  /**
+   * Find the playlists related to the given search value.
+   * @param searchValue The search value.
+   * @returns The playlists related to the given search value.
+   * @throws {YoutubeMusicNoPlaylistError} When the search response does not contain any playlist.
+   * Happens occasionally even when the request is valid and should have returned some playlists.
+   */
   public async findPlaylists (searchValue: string): Promise<Playlist[]> {
     const playlists: Playlist[] = []
 
-    try {
-      const response = await this.axios.post<SearchResponse>('search', {
-        context: YoutubeMusic.context,
-        query: searchValue
-      })
+    const response = await this.axios.post<SearchResponse>('search', {
+      context: YoutubeMusic.context,
+      query: searchValue
+    })
 
-      const playlistShelf = response.data.contents.sectionListRenderer.contents.find(ms => ms.musicShelfRenderer.title.runs[0].text === 'Playlists')
-      for (const playlist of playlistShelf.musicShelfRenderer.contents) {
-        const title = playlist.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
-        const playlistId = playlist.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId
-        const songCount = Number(playlist.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[4].text.match(YoutubeMusic.songsRegex)[0])
+    const playlistShelf = response.data.contents.sectionListRenderer.contents.find(ms => ms.musicShelfRenderer.title.runs[0].text === 'Playlists')
 
-        playlists.push(new Playlist(title, playlistId, songCount))
-      }
-    } catch (error) {
-      console.log(error)
-      throw error
+    // Sometimes, the response does not contain the playlist even though the search is valid.
+    if (!playlistShelf) throw new YoutubeMusicNoPlaylistError('Could not retrieve any playlist from the search.')
+
+    for (const playlist of playlistShelf.musicShelfRenderer.contents) {
+      const title = playlist.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
+      const playlistId = playlist.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId
+      const songCount = Number(playlist.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[4].text.match(YoutubeMusic.songsRegex)[0])
+
+      playlists.push(new Playlist(title, playlistId, songCount))
     }
 
     return playlists
@@ -103,6 +109,9 @@ export class Playlist {
     this.songCount = songCount
   }
 }
+
+export class YoutubeMusicError extends Error {}
+export class YoutubeMusicNoPlaylistError extends YoutubeMusicError {}
 
 // eslint-disable-next-line no-unused-vars
 class BrowseResponse {
