@@ -1,13 +1,26 @@
-import { YoutubeMusic } from '../src/'
+import { YoutubeMusic, YoutubeMusicNoPlaylistError } from '../src/'
 
-const youtubeMusic = new YoutubeMusic()
+const ytm = new YoutubeMusic()
 
 test('Find 80s playlists', async () => {
-  const playlists = await youtubeMusic.findPlaylists('80s')
+  const maxRetryCount = 5
+  var retryCount = 0
+  var playlists = null
+
+  while (playlists === null && retryCount < maxRetryCount) {
+    try {
+      playlists = await ytm.findPlaylists('80s')
+    } catch (error) {
+      if (error instanceof YoutubeMusicNoPlaylistError) throw error
+      retryCount++
+      continue
+    }
+  }
+
   expect(playlists.length).toBeGreaterThan(0)
 })
 
 test('Get musics from playlist', async () => {
-  const musics = await youtubeMusic.getMusics('RDCLAK5uy_khNGopKCT_t38MZ1W7z4kERrqprkXovxo')
+  const musics = await ytm.getMusics('RDCLAK5uy_khNGopKCT_t38MZ1W7z4kERrqprkXovxo')
   expect(musics.length).toBeGreaterThan(0)
 })
