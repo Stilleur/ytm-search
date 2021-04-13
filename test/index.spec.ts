@@ -11,9 +11,12 @@ test('Find 80s playlists', async () => {
     try {
       playlists = await ytm.findPlaylists('80s')
     } catch (error) {
-      if (error instanceof YoutubeMusicNoPlaylistError) throw error
-      retryCount++
-      continue
+      if (error instanceof YoutubeMusicNoPlaylistError) {
+        retryCount++
+        continue
+      } else {
+        throw error
+      }
     }
   }
 

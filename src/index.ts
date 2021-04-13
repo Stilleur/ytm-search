@@ -69,7 +69,7 @@ export class YoutubeMusic {
 
     const playlistShelf = response.data.contents.sectionListRenderer.contents.find(ms => ms.musicShelfRenderer.title.runs[0].text === 'Playlists')
 
-    // Sometimes, the response does not contain the playlist even though the search is valid.
+    // Sometimes, the response does not contain the playlists "shelf" even though the search is valid and should have returned it.
     if (!playlistShelf) throw new YoutubeMusicNoPlaylistError('Could not retrieve any playlist from the search.')
 
     for (const playlist of playlistShelf.musicShelfRenderer.contents) {
@@ -110,8 +110,21 @@ export class Playlist {
   }
 }
 
-export class YoutubeMusicError extends Error {}
-export class YoutubeMusicNoPlaylistError extends YoutubeMusicError {}
+export class YoutubeMusicError extends Error {
+  constructor (message: string) {
+    super(message)
+    this.name = 'YoutubeMusicError'
+    Object.setPrototypeOf(this, YoutubeMusicError.prototype)
+  }
+}
+
+export class YoutubeMusicNoPlaylistError extends YoutubeMusicError {
+  constructor (message: string) {
+    super(message)
+    this.name = 'YoutubeMusicNoPlaylistError'
+    Object.setPrototypeOf(this, YoutubeMusicNoPlaylistError.prototype)
+  }
+}
 
 // eslint-disable-next-line no-unused-vars
 class BrowseResponse {
