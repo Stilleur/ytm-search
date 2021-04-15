@@ -4,6 +4,13 @@ export class YoutubeMusic {
   private static readonly hostname = 'music.youtube.com'
   private static readonly url = `https://${YoutubeMusic.hostname}/`
   private static readonly apiUrl = `${YoutubeMusic.url}youtubei/v1/`
+
+  private static readonly playlistShelfTitles = [
+    'Top result',
+    'Featured playlists',
+    'Community playlists'
+  ]
+
   private static readonly songsRegex = new RegExp('^\\d+')
 
   private static readonly headers = {
@@ -67,12 +74,12 @@ export class YoutubeMusic {
       query: searchValue
     })
 
-    const playlistShelf = response.data.contents.sectionListRenderer.contents.find(ms => ms.musicShelfRenderer.title.runs[0].text === 'Playlists')
+    const playlistShelves = response.data.contents.sectionListRenderer.contents.filter(
+      s => YoutubeMusic.playlistShelfTitles.includes(s.musicShelfRenderer.title.runs[0].text))
 
-    // Sometimes, the response does not contain the playlists "shelf" even though the search is valid and should have returned it.
-    if (!playlistShelf) throw new YoutubeMusicNoPlaylistError('Could not retrieve any playlist from the search.')
+    if (playlistShelves.length === 0) throw new YoutubeMusicNoPlaylistError('Could not retrieve any playlist from the search.')
 
-    for (const playlist of playlistShelf.musicShelfRenderer.contents) {
+    for (const playlist of [].concat.apply([], playlistShelves.map(s => s.musicShelfRenderer.contents))) {
       const title = playlist.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
       const playlistId = playlist.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId
       const songCount = Number(playlist.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[4].text.match(YoutubeMusic.songsRegex)[0])
