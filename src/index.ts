@@ -5,12 +5,6 @@ export class YoutubeMusic {
   private static readonly url = `https://${YoutubeMusic.hostname}/`
   private static readonly apiUrl = `${YoutubeMusic.url}youtubei/v1/`
 
-  private static readonly playlistShelfTitles = [
-    'Top result',
-    'Featured playlists',
-    'Community playlists'
-  ]
-
   private static readonly songsRegex = new RegExp('^\\d+')
 
   private static readonly headers = {
@@ -40,6 +34,8 @@ export class YoutubeMusic {
    * @returns The musics from the given playlist id.
    */
   public async getMusics (playlistId: string): Promise<Music[]> {
+    if (!playlistId) throw new TypeError("The argument 'playlistId' is mandatory.")
+
     const musics: Music[] = []
 
     const response = await this.axios.post<BrowseResponse>('browse', {
@@ -67,6 +63,8 @@ export class YoutubeMusic {
    * Happens occasionally even when the request is valid and should have returned some playlists.
    */
   public async findPlaylists (searchValue: string): Promise<Playlist[]> {
+    if (!searchValue) throw new TypeError("The argument 'searchValue' is mandatory.")
+
     const playlists: Playlist[] = []
 
     const response = await this.axios.post<SearchResponse>('search', {
@@ -74,12 +72,11 @@ export class YoutubeMusic {
       query: searchValue
     })
 
-    const playlistShelves = response.data.contents.sectionListRenderer.contents.filter(
-      s => YoutubeMusic.playlistShelfTitles.includes(s.musicShelfRenderer.title.runs[0].text))
+    const musicShelves = response.data.contents.sectionListRenderer.contents
+    const musicResponsiveListItems = [].concat.apply([], musicShelves.map(ms => ms.musicShelfRenderer?.contents)) as MusicResponsiveListItem[]
+    const playlistResponsiveListItems = musicResponsiveListItems.filter(this.isPlaylistResponsiveListItem)
 
-    if (playlistShelves.length === 0) throw new YoutubeMusicNoPlaylistError('Could not retrieve any playlist from the search.')
-
-    for (const playlist of [].concat.apply([], playlistShelves.map(s => s.musicShelfRenderer.contents))) {
+    for (const playlist of playlistResponsiveListItems) {
       const title = playlist.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
       const playlistId = playlist.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchPlaylistEndpoint.playlistId
       const songCount = Number(playlist.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[4].text.match(YoutubeMusic.songsRegex)[0])
@@ -88,6 +85,11 @@ export class YoutubeMusic {
     }
 
     return playlists
+  }
+
+  private isPlaylistResponsiveListItem (musicResponsiveListItem: MusicResponsiveListItem) {
+    const musicResponsiveListItemType = musicResponsiveListItem?.musicResponsiveListItemRenderer?.flexColumns[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs[0]?.text
+    return musicResponsiveListItemType && musicResponsiveListItemType === 'Playlist'
   }
 }
 
