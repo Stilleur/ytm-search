@@ -18,3 +18,8 @@ test('Get musics from a playlist', async () => {
   const musics = await ytm.getMusics('RDCLAK5uy_khNGopKCT_t38MZ1W7z4kERrqprkXovxo')
   expect(musics.length).toBeGreaterThan(0)
 })
+
+test('Get musics from another playlist', async () => {
+  const musics = await ytm.getMusics('PLLbSrgCwvj2JyVb7wcb-C53xExz7lFTXh')
+  expect(musics.length).toBeGreaterThan(0)
+})

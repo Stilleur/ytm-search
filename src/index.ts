@@ -43,13 +43,18 @@ export class YoutubeMusic {
       browseId: `VL${playlistId}`
     })
 
-    for (const music of response.data.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].musicPlaylistShelfRenderer.contents) {
-      const title = music.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
-      const artist = music.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
-      const videoId = music.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint.watchEndpoint.videoId
-      const duration = music.musicResponsiveListItemRenderer.fixedColumns[0].musicResponsiveListItemFixedColumnRenderer.text.runs[0].text
+    const musicResponsiveListItems = response.data.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content.sectionListRenderer.contents[0].musicPlaylistShelfRenderer.contents
 
-      musics.push(new Music(title, artist, videoId, duration))
+    for (const music of musicResponsiveListItems) {
+      const videoId = music.musicResponsiveListItemRenderer.overlay.musicItemThumbnailOverlayRenderer.content.musicPlayButtonRenderer.playNavigationEndpoint?.watchEndpoint.videoId
+
+      if (videoId) {
+        const title = music.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
+        const artist = music.musicResponsiveListItemRenderer.flexColumns[1].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
+        const duration = music.musicResponsiveListItemRenderer.fixedColumns[0].musicResponsiveListItemFixedColumnRenderer.text.runs[0].text
+
+        musics.push(new Music(title, artist, videoId, duration))
+      }
     }
 
     return musics
@@ -74,7 +79,7 @@ export class YoutubeMusic {
 
     const musicShelves = response.data.contents.sectionListRenderer.contents
     const musicResponsiveListItems = [].concat.apply([], musicShelves.map(ms => ms.musicShelfRenderer?.contents)) as MusicResponsiveListItem[]
-    const playlistResponsiveListItems = musicResponsiveListItems.filter(this.isPlaylistResponsiveListItem)
+    const playlistResponsiveListItems = musicResponsiveListItems.filter(YoutubeMusic.isPlaylistResponsiveListItem)
 
     for (const playlist of playlistResponsiveListItems) {
       const title = playlist.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text.runs[0].text
@@ -87,7 +92,7 @@ export class YoutubeMusic {
     return playlists
   }
 
-  private isPlaylistResponsiveListItem (musicResponsiveListItem: MusicResponsiveListItem) {
+  private static isPlaylistResponsiveListItem (musicResponsiveListItem: MusicResponsiveListItem) {
     const musicResponsiveListItemType = musicResponsiveListItem?.musicResponsiveListItemRenderer?.flexColumns[1]?.musicResponsiveListItemFlexColumnRenderer?.text?.runs[0]?.text
     return musicResponsiveListItemType && musicResponsiveListItemType === 'Playlist'
   }
